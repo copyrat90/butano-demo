@@ -1,0 +1,13 @@
+
+# clangd linter setting
+compile_commands.json
+compile_flags.txt
+
+# build output 
+build/
+*.elf
+*.elfbin
+*.gba
+
+# save file for testing
+*.sav
