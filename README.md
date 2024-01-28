@@ -1,10 +1,18 @@
-# affine_bg_map_cell demo
+# Butano Demo
 
-A short demo to show how to use `bn::affine_bg_map_cell` as a unique tile id.
+My demos to show how to do X in [Butano engine](https://github.com/GValiente/butano).
 
-There's a [demo for `bn::regular_bg_map_cell`](https://github.com/copyrat90/butano_affine_bg_map_cell_demo/tree/regular_bg_map_cell), too.\
-But it's slightly different, so you can't just use the same method I described in [my itch.io article](https://copyrat90.itch.io/sym-merged/devlog/263735/platforming-physics).
+Each directory contains different demos.
 
-## Dependencies
+## Build
 
-This program uses [Butano](https://github.com/GValiente/butano), which is licensed under zlib license.
+1. Clone this repo recursively with `butano/` submodule.
+2. Setup dependencies Butano engine requires.
+    * See [Getting started](https://gvaliente.github.io/butano/getting_started.html) in Butano Docs
+3. `cd` to the demo you would like to see, and run `make -j$(nproc)` to build.
+
+## License
+
+All demos included in this repo are licensed under the [0BSD license](LICENSE).
+
+These demos depend on the [Butano engine](https://github.com/GValiente/butano), which is licensed under the [zlib license](https://github.com/GValiente/butano/blob/master/LICENSE).

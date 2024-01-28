@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2021-2022 copyrat90
+// SPDX-License-Identifier: 0BSD
+
 #include "bn_core.h"
 
 #include "bn_affine_bg_items_image_file.h"
