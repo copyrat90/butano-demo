@@ -6,6 +6,7 @@
 #include <bn_display.h>
 #include <bn_format.h>
 #include <bn_keypad.h>
+#include <bn_profiler.h>
 #include <bn_sprite_text_generator.h>
 #include <bn_unique_ptr.h>
 
@@ -41,6 +42,9 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
         "PAD: move box",
         "A + PAD: enlarge box",
         "B + PAD: shrink box",
+#if BN_CFG_PROFILER_ENABLED
+        "R: profiler result",
+#endif
     };
 
     common::info info("Move & Scale BgBox", infoTextLines, textGen);
@@ -53,6 +57,7 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
     while (!bn::keypad::start_pressed())
     {
         constexpr bn::fixed MOVE_SPEED = 1.0f;
+        const bn::fixed boxMinSize = 2 * box->getBorderThickness();
 
         auto rect = box->getRect();
 
@@ -67,20 +72,20 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
             if (bn::keypad::up_held())
             {
                 rect.set_y(rect.y() - MOVE_SPEED);
-                rect.set_height(bn::max(bn::fixed(0), rect.height() + MOVE_SPEED));
+                rect.set_height(bn::max(boxMinSize, rect.height() + MOVE_SPEED));
             }
             else if (bn::keypad::down_held())
             {
-                rect.set_height(bn::max(bn::fixed(0), rect.height() + MOVE_SPEED));
+                rect.set_height(bn::max(boxMinSize, rect.height() + MOVE_SPEED));
             }
             if (bn::keypad::left_held())
             {
                 rect.set_x(rect.x() - MOVE_SPEED);
-                rect.set_width(bn::max(bn::fixed(0), rect.width() + MOVE_SPEED));
+                rect.set_width(bn::max(boxMinSize, rect.width() + MOVE_SPEED));
             }
             else if (bn::keypad::right_held())
             {
-                rect.set_width(bn::max(bn::fixed(0), rect.width() + MOVE_SPEED));
+                rect.set_width(bn::max(boxMinSize, rect.width() + MOVE_SPEED));
             }
         }
         // shrink
@@ -88,21 +93,23 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
         {
             if (bn::keypad::up_held())
             {
-                rect.set_height(bn::max(bn::fixed(0), rect.height() - MOVE_SPEED));
+                rect.set_height(bn::max(boxMinSize, rect.height() - MOVE_SPEED));
             }
             else if (bn::keypad::down_held())
             {
-                rect.set_y(rect.y() + MOVE_SPEED);
-                rect.set_height(bn::max(bn::fixed(0), rect.height() - MOVE_SPEED));
+                const auto prevHeight = rect.height();
+                rect.set_height(bn::max(boxMinSize, rect.height() - MOVE_SPEED));
+                rect.set_y(rect.y() + (prevHeight - rect.height()));
             }
             if (bn::keypad::left_held())
             {
-                rect.set_width(bn::max(bn::fixed(0), rect.width() - MOVE_SPEED));
+                rect.set_width(bn::max(boxMinSize, rect.width() - MOVE_SPEED));
             }
             else if (bn::keypad::right_held())
             {
-                rect.set_x(rect.x() + MOVE_SPEED);
-                rect.set_width(bn::max(bn::fixed(0), rect.width() - MOVE_SPEED));
+                const auto prevWidth = rect.width();
+                rect.set_width(bn::max(boxMinSize, rect.width() - MOVE_SPEED));
+                rect.set_x(rect.x() + (prevWidth - rect.width()));
             }
         }
         // move
@@ -127,6 +134,11 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
         }
 
         box->setRect(rect);
+
+#if BN_CFG_PROFILER_ENABLED
+        if (bn::keypad::r_pressed())
+            bn::profiler::show();
+#endif
 
         info.update();
         updateCpuUsageText(textGen, cpuUpdateCounter, maxCpuUsage, cpuSprites);

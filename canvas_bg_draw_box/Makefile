@@ -39,7 +39,7 @@ AUDIO       :=  audio
 DMGAUDIO    :=  dmg_audio
 ROMTITLE    :=  ROM TITLE
 ROMCODE     :=  SBTP
-USERFLAGS   :=  
+USERFLAGS   :=  -DBN_CFG_PROFILER_ENABLED=true
 USERASFLAGS :=  
 USERLDFLAGS :=  
 USERLIBDIRS :=  

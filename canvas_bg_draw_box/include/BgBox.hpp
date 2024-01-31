@@ -41,6 +41,8 @@ public:
     void setWidth(bn::fixed width);
     void setHeight(bn::fixed height);
 
+    int getBorderThickness() const;
+
     auto getCanvas() -> bn::regular_bg_ptr&;
     auto getCanvas() const -> const bn::regular_bg_ptr&;
 
@@ -53,6 +55,7 @@ private:
 
 private:
     void setCell(int x, int y, int tileIdx);
+    void setCellLine(int xLo, int xHi, int y, int tileIdx);
     void drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi);
 
 private:

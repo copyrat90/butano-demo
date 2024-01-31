@@ -6,6 +6,7 @@
 #include <bit>
 
 #include <bn_memory.h>
+#include <bn_profiler.h>
 #include <bn_regular_bg_item.h>
 #include <bn_regular_bg_map_cell_info.h>
 
@@ -134,6 +135,21 @@ void BgBox::setHeight(bn::fixed height)
     setRect(newRect);
 }
 
+int BgBox::getBorderThickness() const
+{
+    return _borderThickness;
+}
+
+auto BgBox::getCanvas() -> bn::regular_bg_ptr&
+{
+    return _bg;
+}
+
+auto BgBox::getCanvas() const -> const bn::regular_bg_ptr&
+{
+    return _bg;
+}
+
 void BgBox::redrawAll()
 {
     redrawMap();
@@ -145,10 +161,13 @@ void BgBox::redrawAll()
 
 void BgBox::redrawMap()
 {
+    BN_PROFILER_START("map: clear");
     // clear map
     BN_ASSERT(sizeof(_cells) % 4 == 0);
     bn::memory::set_words(0, sizeof(_cells) / 4, _cells);
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: get rects");
     const auto borderRect = convertToPositiveIntRect(getClampedRect());
     const auto fillRect = bn::top_left_rect{
         borderRect.x() + _borderThickness,
@@ -156,33 +175,45 @@ void BgBox::redrawMap()
         bn::max(0, borderRect.width() - 2 * _borderThickness),
         bn::max(0, borderRect.height() - 2 * _borderThickness),
     };
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: fill ready");
     // fill
     int xLo = fillRect.left() / TILE_LEN;
     int yLo = fillRect.top() / TILE_LEN;
     int xHi = (fillRect.right() - 1) / TILE_LEN;
     int yHi = (fillRect.bottom() - 1) / TILE_LEN;
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: fill sides");
     drawMapSides(false, xLo, xHi, yLo, yHi);
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: fill mid");
     for (int y = yLo + 1; y <= yHi - 1; ++y)
-        for (int x = xLo + 1; x <= xHi - 1; ++x)
-            setCell(x, y, TileIdx::MID_INNER);
+        setCellLine(xLo + 1, xHi - 1, y, TileIdx::MID_INNER);
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: border ready");
     // border
     xLo = borderRect.left() / TILE_LEN;
     yLo = borderRect.top() / TILE_LEN;
     xHi = (borderRect.right() - 1) / TILE_LEN;
     yHi = (borderRect.bottom() - 1) / TILE_LEN;
+    BN_PROFILER_STOP();
 
+    BN_PROFILER_START("map: border sides");
     drawMapSides(true, xLo, xHi, yLo, yHi);
+    BN_PROFILER_STOP();
 }
 
 void BgBox::redrawTiles()
 {
+    BN_PROFILER_START("tiles: clear");
     // clear tiles
     BN_ASSERT(sizeof(_tiles) % 4 == 0);
     bn::memory::set_words(0, sizeof(_tiles) / 4, _tiles);
+    BN_PROFILER_STOP();
 
     // TODO
 
@@ -220,22 +251,31 @@ auto BgBox::getClampedRect() const -> bn::top_left_fixed_rect
 
 void BgBox::setCell(int x, int y, int tileIdx)
 {
-    // BN_LOG("BgBox::setCell(x=", x, ", y=", y, ", tileIdx=", tileIdx, ")");
     bn::regular_bg_map_cell& cell = _cells[_mapItem.cell_index(x, y)];
     bn::regular_bg_map_cell_info cellInfo(cell);
     cellInfo.set_tile_index(tileIdx);
     cell = cellInfo.cell();
 }
 
+void BgBox::setCellLine(int xLo, int xHi, int y, int tileIdx)
+{
+    const int cellCount = xHi - xLo + 1;
+    if (cellCount <= 0)
+        return;
+
+    bn::regular_bg_map_cell& startCell = _cells[_mapItem.cell_index(xLo, y)];
+    bn::regular_bg_map_cell_info startCellInfo(startCell);
+    startCellInfo.set_tile_index(tileIdx);
+    bn::memory::set_half_words(startCellInfo.cell(), cellCount, &startCell);
+}
+
 void BgBox::drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi)
 {
     // sides
-    for (int x = xLo; x <= xHi; ++x)
-    {
-        setCell(x, yLo, isOuter ? TileIdx::TOP_OUTER : TileIdx::TOP_INNER);
-        setCell(x, yHi, isOuter ? TileIdx::BOTTOM_OUTER : TileIdx::BOTTOM_INNER);
-    }
-    for (int y = yLo; y <= yHi; ++y)
+    setCellLine(xLo + 1, xHi - 1, yLo, isOuter ? TileIdx::TOP_OUTER : TileIdx::TOP_INNER);
+    setCellLine(xLo + 1, xHi - 1, yHi, isOuter ? TileIdx::BOTTOM_OUTER : TileIdx::BOTTOM_INNER);
+
+    for (int y = yLo + 1; y <= yHi - 1; ++y)
     {
         setCell(xLo, y, isOuter ? TileIdx::LEFT_OUTER : TileIdx::LEFT_INNER);
         setCell(xHi, y, isOuter ? TileIdx::RIGHT_OUTER : TileIdx::RIGHT_INNER);
@@ -246,16 +286,6 @@ void BgBox::drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi)
     setCell(xHi, yLo, isOuter ? TileIdx::TOP_RIGHT_OUTER : TileIdx::TOP_RIGHT_INNER);
     setCell(xLo, yHi, isOuter ? TileIdx::BOTTOM_LEFT_OUTER : TileIdx::BOTTOM_LEFT_INNER);
     setCell(xHi, yHi, isOuter ? TileIdx::BOTTOM_RIGHT_OUTER : TileIdx::BOTTOM_RIGHT_INNER);
-}
-
-auto BgBox::getCanvas() -> bn::regular_bg_ptr&
-{
-    return _bg;
-}
-
-auto BgBox::getCanvas() const -> const bn::regular_bg_ptr&
-{
-    return _bg;
 }
 
 auto BgBox::convertToPositiveRect(const bn::top_left_fixed_rect& rawRect) -> bn::top_left_fixed_rect
