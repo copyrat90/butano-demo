@@ -27,8 +27,12 @@ class BgBox
 {
 public:
     BgBox(const bn::top_left_fixed_rect& boxRect, int borderThickness = 2,
-          bn::optional<bn::color> borderColor = bn::colors::white,
-          bn::optional<bn::color> fillColor = bn::colors::black);
+          bn::optional<bn::color> borderColor = bn::colors::white, bn::optional<bn::color> fillColor = bn::colors::black
+#ifdef DEMO_BG_BOX_DEBUG
+          ,
+          bool debug = false
+#endif
+    );
 
 public:
     auto getRect() const -> const bn::top_left_fixed_rect&;
@@ -47,16 +51,32 @@ public:
     auto getCanvas() const -> const bn::regular_bg_ptr&;
 
 private:
-    void redrawAll();
-    void redrawMap();
-    void redrawTiles();
+    void redraw();
 
     auto getClampedRect() const -> bn::top_left_fixed_rect;
+
+private:
+    struct CellPos
+    {
+        int8_t x, y;
+    };
 
 private:
     void setCell(int x, int y, int tileIdx);
     void setCellLine(int xLo, int xHi, int y, int tileIdx);
     void drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi);
+
+    inline uint8_t getPlotColor(int dotX, int dotY, const bn::top_left_rect& borderRect,
+                                const bn::top_left_rect& fillRect)
+    {
+        const bn::point dotPos(dotX, dotY);
+
+        if (fillRect.contains(dotPos))
+            return _fillColorIdx;
+        if (borderRect.contains(dotPos))
+            return _borderColorIdx;
+        return 0;
+    }
 
 private:
     static auto convertToPositiveRect(const bn::top_left_fixed_rect& rawRect) -> bn::top_left_fixed_rect;
@@ -70,16 +90,22 @@ private:
     static constexpr int UNIQUE_TILE_COUNT = 18;
 
 private:
-    const int _borderThickness;
+#ifdef DEMO_BG_BOX_DEBUG
+    const bool _debug;
+#endif
+    const uint8_t _borderThickness;
 
-    const int _borderColorIdx;
-    const int _fillColorIdx;
+    const uint8_t _borderColorIdx;
+    const uint8_t _fillColorIdx;
 
     bn::top_left_fixed_rect _rawRect;
 
     alignas(4) bn::regular_bg_map_cell _cells[MAP_SIZE.width() * MAP_SIZE.height()];
     alignas(4) bn::tile _tiles[UNIQUE_TILE_COUNT];
     alignas(4) bn::color _colors[16];
+
+    // if unused, {x = -1, y = -1}
+    alignas(4) CellPos _usedTilePos[UNIQUE_TILE_COUNT];
 
     bn::regular_bg_map_item _mapItem;
 

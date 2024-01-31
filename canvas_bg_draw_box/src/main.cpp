@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: 0BSD
 
 #include <bn_bg_palettes.h>
+#include <bn_blending.h>
 #include <bn_core.h>
 #include <bn_display.h>
 #include <bn_format.h>
@@ -42,29 +43,40 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
         "PAD: move box",
         "A + PAD: enlarge box",
         "B + PAD: shrink box",
-#if BN_CFG_PROFILER_ENABLED
+#ifdef DEMO_BG_BOX_DEBUG
+        "L: toggle debug tiles",
+#endif
+#if BN_CFG_PROFILER_ENABLED && defined(DEMO_BG_BOX_PROFILER_ENABLED)
         "R: profiler result",
 #endif
     };
 
     common::info info("Move & Scale BgBox", infoTextLines, textGen);
 
-    bn::unique_ptr<demo::BgBox> box(
-        new demo::BgBox({-16 - 1, -16 - 1, 32 + 2, 32 + 2}, 2, bn::colors::white, bn::colors::black));
+    constexpr bn::top_left_fixed_rect initRect = {-16 - 1, -16 - 1, 32 + 2, 32 + 2};
+    bn::unique_ptr<demo::BgBox> box(new demo::BgBox(initRect, 2, bn::colors::white, bn::colors::black));
+
+#ifdef DEMO_BG_BOX_DEBUG
+    bn::unique_ptr<demo::BgBox> debugBox(new demo::BgBox(initRect, 2, bn::colors::blue, bn::colors::blue, true));
+
+    debugBox->getCanvas().set_priority(0);
+    debugBox->getCanvas().set_blending_enabled(true);
+    bn::blending::set_transparency_alpha(0.25);
+#endif
 
     int cpuUsageLogTimer = 30;
 
-    while (!bn::keypad::start_pressed())
+    while (true)
     {
         constexpr bn::fixed MOVE_SPEED = 1.0f;
         const bn::fixed boxMinSize = 2 * box->getBorderThickness();
-
-        auto rect = box->getRect();
 
         if (--cpuUsageLogTimer <= 0)
         {
             cpuUsageLogTimer = 30;
         }
+
+        auto rect = box->getRect();
 
         // enlarge
         if (bn::keypad::a_held())
@@ -134,10 +146,21 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
         }
 
         box->setRect(rect);
+#ifdef DEMO_BG_BOX_DEBUG
+        debugBox->setRect(rect);
+#endif
 
-#if BN_CFG_PROFILER_ENABLED
+#if BN_CFG_PROFILER_ENABLED && defined(DEMO_BG_BOX_PROFILER_ENABLED)
         if (bn::keypad::r_pressed())
             bn::profiler::show();
+#endif
+
+#ifdef DEMO_BG_BOX_DEBUG
+        if (bn::keypad::l_pressed())
+        {
+            auto& debugBg = debugBox->getCanvas();
+            debugBg.set_visible(!debugBg.visible());
+        }
 #endif
 
         info.update();
