@@ -6,6 +6,10 @@
 #include <bn_memory.h>
 #include <bn_regular_bg_item.h>
 
+#ifdef DEMO_BG_BOX_DEBUG
+#include "bn_regular_bg_tiles_items_debug_numbers.h"
+#endif
+
 namespace demo
 {
 
@@ -51,6 +55,16 @@ BgBox::BgBox(const bn::top_left_fixed_rect& boxRect, int borderThickness, bn::op
     }
 
     _palette.set_colors(bn::bg_palette_item(_colors, bn::bpp_mode::BPP_4));
+
+#ifdef DEMO_BG_BOX_DEBUG
+    if (debug)
+    {
+        for (int i = 0; i < UNIQUE_TILE_COUNT; ++i)
+            _tiles[i] = bn::regular_bg_tiles_items::debug_numbers.tiles_ref()[i];
+
+        _tileset.reload_tiles_ref();
+    }
+#endif
 
     setRect(boxRect);
 }

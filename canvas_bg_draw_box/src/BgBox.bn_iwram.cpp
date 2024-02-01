@@ -7,10 +7,6 @@
 #include <bn_profiler.h>
 #include <bn_regular_bg_map_cell_info.h>
 
-#ifdef DEMO_BG_BOX_DEBUG
-#include "bn_regular_bg_tiles_items_debug_numbers.h"
-#endif
-
 #ifdef DEMO_BG_BOX_PROFILER_ENABLED
 
 #ifdef DEMO_BG_BOX_DEBUG
@@ -135,7 +131,7 @@ BN_CODE_IWRAM void BgBox::redraw()
     // map: draw border sides
     drawMapSides(true, xLo, xHi, yLo, yHi);
 
-    // map: fill
+    // map: draw fill
     xLo = fillRect.left() / TILE_LEN;
     yLo = fillRect.top() / TILE_LEN;
     xHi = (fillRect.right() - 1) / TILE_LEN;
@@ -149,22 +145,11 @@ BN_CODE_IWRAM void BgBox::redraw()
         setCellLine(xLo + 1, xHi - 1, y, TileIdx::MID_INNER);
     DEMO_BG_BOX_PROFILER_STOP();
 
-    DEMO_BG_BOX_PROFILER_START("tiles: clear");
-    // clear tiles
-    BN_ASSERT(sizeof(_tiles) % 4 == 0);
-    bn::memory::set_words(0, sizeof(_tiles) / 4, _tiles);
-    DEMO_BG_BOX_PROFILER_STOP();
-
     // plot dots in each unique tile
     DEMO_BG_BOX_PROFILER_START("tiles: plot");
 
 #ifdef DEMO_BG_BOX_DEBUG
-    if (_debug)
-    {
-        for (int i = 0; i < TILE_IDX_COUNT; ++i)
-            _tiles[i] = bn::regular_bg_tiles_items::debug_numbers.tiles_ref()[i];
-    }
-    else
+    if (!_debug)
 #endif
     {
         for (int i = 0; i < UNIQUE_TILE_COUNT; ++i)
@@ -193,7 +178,11 @@ BN_CODE_IWRAM void BgBox::redraw()
     DEMO_BG_BOX_PROFILER_STOP();
 
     _map.reload_cells_ref();
-    _tileset.reload_tiles_ref();
+
+#ifdef DEMO_BG_BOX_DEBUG
+    if (!_debug)
+#endif
+        _tileset.reload_tiles_ref();
 }
 
 BN_CODE_IWRAM void BgBox::setCell(int x, int y, int tileIdx)
