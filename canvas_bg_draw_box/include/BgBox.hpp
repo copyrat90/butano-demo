@@ -51,7 +51,7 @@ public:
     auto getCanvas() const -> const bn::regular_bg_ptr&;
 
 private:
-    void redraw();
+    BN_CODE_IWRAM void redraw();
 
     auto getClampedRect() const -> bn::top_left_fixed_rect;
 
@@ -62,21 +62,9 @@ private:
     };
 
 private:
-    void setCell(int x, int y, int tileIdx);
-    void setCellLine(int xLo, int xHi, int y, int tileIdx);
-    void drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi);
-
-    inline uint8_t getPlotColor(int dotX, int dotY, const bn::top_left_rect& borderRect,
-                                const bn::top_left_rect& fillRect)
-    {
-        const bn::point dotPos(dotX, dotY);
-
-        if (fillRect.contains(dotPos))
-            return _fillColorIdx;
-        if (borderRect.contains(dotPos))
-            return _borderColorIdx;
-        return 0;
-    }
+    BN_CODE_IWRAM void setCell(int x, int y, int tileIdx);
+    BN_CODE_IWRAM void setCellLine(int xLo, int xHi, int y, int tileIdx);
+    BN_CODE_IWRAM void drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi);
 
 private:
     static auto convertToPositiveRect(const bn::top_left_fixed_rect& rawRect) -> bn::top_left_fixed_rect;

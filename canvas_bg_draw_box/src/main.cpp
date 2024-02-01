@@ -57,11 +57,11 @@ void moveAndScaleBgBoxScene(bn::sprite_text_generator& textGen, int& cpuUpdateCo
     bn::unique_ptr<demo::BgBox> box(new demo::BgBox(initRect, 2, bn::colors::white, bn::colors::black));
 
 #ifdef DEMO_BG_BOX_DEBUG
-    bn::unique_ptr<demo::BgBox> debugBox(new demo::BgBox(initRect, 2, bn::colors::blue, bn::colors::blue, true));
+    bn::unique_ptr<demo::BgBox> debugBox(new demo::BgBox(initRect, 2, bn::colors::blue, bn::colors::magenta, true));
 
     debugBox->getCanvas().set_priority(0);
     debugBox->getCanvas().set_blending_enabled(true);
-    bn::blending::set_transparency_alpha(0.25);
+    bn::blending::set_transparency_alpha(0.6);
 #endif
 
     int cpuUsageLogTimer = 30;
