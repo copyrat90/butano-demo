@@ -54,31 +54,6 @@ namespace demo
 namespace
 {
 
-enum TileIdx
-{
-    EMPTY = 0,
-
-    TOP_LEFT_OUTER,
-    TOP_OUTER,
-    TOP_RIGHT_OUTER,
-    LEFT_OUTER,
-    TOP_LEFT_INNER,
-    TOP_INNER,
-    TOP_RIGHT_INNER,
-    RIGHT_OUTER,
-    LEFT_INNER,
-    MID_INNER,
-    RIGHT_INNER,
-    BOTTOM_LEFT_INNER,
-    BOTTOM_INNER,
-    BOTTOM_RIGHT_INNER,
-    BOTTOM_LEFT_OUTER,
-    BOTTOM_OUTER,
-    BOTTOM_RIGHT_OUTER,
-
-    TILE_IDX_COUNT
-};
-
 BN_CODE_IWRAM inline uint8_t getPlotColor(int dotX, int dotY, const bn::top_left_rect& borderRect,
                                           const bn::top_left_rect& fillRect, int fillColorIdx, int borderColorIdx)
 {
@@ -97,8 +72,6 @@ BN_CODE_IWRAM inline uint8_t getPlotColor(int dotX, int dotY, const bn::top_left
 
 BN_CODE_IWRAM void BgBox::redraw()
 {
-    static_assert(UNIQUE_TILE_COUNT == TileIdx::TILE_IDX_COUNT);
-
     DEMO_BG_BOX_PROFILER_START("map: clear");
     // clear map
     BN_ASSERT(sizeof(_cells) % 4 == 0);
@@ -152,7 +125,8 @@ BN_CODE_IWRAM void BgBox::redraw()
     if (!_debug)
 #endif
     {
-        for (int i = 0; i < UNIQUE_TILE_COUNT; ++i)
+        // `EMPTY`, `MID_INNER` tiles are not updated
+        for (int i = TileIdx::MID_INNER + 1; i < UNIQUE_TILE_COUNT; ++i)
         {
             const auto& tilePos = _usedTilePos[i];
             if (tilePos.x < 0)

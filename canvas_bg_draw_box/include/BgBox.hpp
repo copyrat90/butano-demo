@@ -56,12 +56,6 @@ private:
     auto getClampedRect() const -> bn::top_left_fixed_rect;
 
 private:
-    struct CellPos
-    {
-        int8_t x, y;
-    };
-
-private:
     BN_CODE_IWRAM void setCell(int x, int y, int tileIdx);
     BN_CODE_IWRAM void setCellLine(int xLo, int xHi, int y, int tileIdx);
     BN_CODE_IWRAM void drawMapSides(bool isOuter, int xLo, int xHi, int yLo, int yHi);
@@ -71,11 +65,42 @@ private:
     static auto convertToPositiveIntRect(const bn::top_left_fixed_rect& rawRect) -> bn::top_left_rect;
 
 private:
+    struct CellPos
+    {
+        int8_t x, y;
+    };
+
+    enum TileIdx
+    {
+        EMPTY = 0,
+        MID_INNER,
+
+        TOP_LEFT_OUTER,
+        TOP_OUTER,
+        TOP_RIGHT_OUTER,
+        LEFT_OUTER,
+        TOP_LEFT_INNER,
+        TOP_INNER,
+        TOP_RIGHT_INNER,
+        RIGHT_OUTER,
+        LEFT_INNER,
+        RIGHT_INNER,
+        BOTTOM_LEFT_INNER,
+        BOTTOM_INNER,
+        BOTTOM_RIGHT_INNER,
+        BOTTOM_LEFT_OUTER,
+        BOTTOM_OUTER,
+        BOTTOM_RIGHT_OUTER,
+
+        TILE_IDX_COUNT
+    };
+
+private:
     static constexpr bn::size MAP_LEN = {256, 256};
     static constexpr int TILE_LEN = 8;
     static constexpr bn::size MAP_SIZE = MAP_LEN / TILE_LEN;
 
-    static constexpr int UNIQUE_TILE_COUNT = 18;
+    static constexpr int UNIQUE_TILE_COUNT = TileIdx::TILE_IDX_COUNT;
 
 private:
 #ifdef DEMO_BG_BOX_DEBUG

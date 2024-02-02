@@ -64,7 +64,15 @@ BgBox::BgBox(const bn::top_left_fixed_rect& boxRect, int borderThickness, bn::op
 
         _tileset.reload_tiles_ref();
     }
+    else
 #endif
+    {
+        const uint32_t midColor = (_fillColorIdx << 0u) | (_fillColorIdx << 4u) | (_fillColorIdx << 8u) |
+                                  (_fillColorIdx << 12u) | (_fillColorIdx << 16u) | (_fillColorIdx << 20u) |
+                                  (_fillColorIdx << 24u) | (_fillColorIdx << 28u);
+
+        bn::memory::set_words(midColor, sizeof(_tiles[TileIdx::MID_INNER].data) / 4, _tiles[TileIdx::MID_INNER].data);
+    }
 
     setRect(boxRect);
 }
