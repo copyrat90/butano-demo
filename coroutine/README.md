@@ -1,3 +1,5 @@
-# Coroutine demo
+# Coroutine Task demo
 
-A short demo to show a basic C++20 coroutine implementation.
+A demo to show a basic task system using C++20 coroutines.
+
+![coro_demo.gif](coro_demo.gif)
